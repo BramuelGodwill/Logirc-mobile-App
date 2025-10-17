@@ -1,14 +1,14 @@
-import { Settings, Crown, Moon, Database, Bell, LogOut } from "lucide-react";
+import { Settings, Crown, Database, Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
   const [lowDataMode, setLowDataMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
@@ -43,14 +43,8 @@ const Profile = () => {
 
           <Card className="divide-y divide-border">
             <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <Moon className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">Dark Mode</span>
-              </div>
-              <Switch
-                checked={darkMode}
-                onCheckedChange={setDarkMode}
-              />
+              <span className="font-medium">Dark Mode</span>
+              <ThemeToggle />
             </div>
 
             <div className="flex items-center justify-between p-4">

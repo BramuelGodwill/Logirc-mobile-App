@@ -1,18 +1,49 @@
 import { useState } from "react";
-import { Search, Mic, Image, Sparkles } from "lucide-react";
+import { Search, Mic, Image, Sparkles, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/results?q=${encodeURIComponent(searchQuery)}`);
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('search', {
+        body: { query: searchQuery }
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        toast({
+          title: "Error",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      navigate(`/results?id=${data.id}`);
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to perform search. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -57,24 +88,38 @@ const Home = () => {
               className="pl-12 pr-24 h-14 text-base rounded-full border-2 focus:border-primary"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="rounded-full"
-                onClick={() => navigate("/voice")}
-              >
-                <Mic className="h-5 w-5" />
-              </Button>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="rounded-full"
-                onClick={() => navigate("/image")}
-              >
-                <Image className="h-5 w-5" />
-              </Button>
+              {isSearching ? (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full"
+                  disabled
+                >
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-full"
+                    onClick={() => navigate("/voice")}
+                  >
+                    <Mic className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-full"
+                    onClick={() => navigate("/image")}
+                  >
+                    <Image className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </form>

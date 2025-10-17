@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      searches: {
+        Row: {
+          answer: string | null
+          created_at: string
+          follow_up_questions: string[] | null
+          id: string
+          is_favorite: boolean | null
+          query: string
+          sources: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          follow_up_questions?: string[] | null
+          id?: string
+          is_favorite?: boolean | null
+          query: string
+          sources?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          follow_up_questions?: string[] | null
+          id?: string
+          is_favorite?: boolean | null
+          query?: string
+          sources?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

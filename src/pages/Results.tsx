@@ -1,13 +1,101 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Share2, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
+
+interface SearchResult {
+  id: string;
+  query: string;
+  answer: string;
+  sources: Array<{ title: string; url: string; domain: string }>;
+  follow_up_questions: string[];
+}
 
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const query = searchParams.get("q") || "";
+  const { toast } = useToast();
+  const searchId = searchParams.get("id");
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchResult = async () => {
+      if (!searchId) {
+        navigate('/');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('searches')
+          .select('*')
+          .eq('id', searchId)
+          .single();
+
+        if (error) throw error;
+        
+        setResult({
+          ...data,
+          sources: data.sources as Array<{ title: string; url: string; domain: string }>,
+        });
+      } catch (error) {
+        console.error('Error fetching search result:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load search results.",
+          variant: "destructive",
+        });
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResult();
+  }, [searchId, navigate, toast]);
+
+  const handleCopy = () => {
+    if (result?.answer) {
+      navigator.clipboard.writeText(result.answer);
+      toast({
+        title: "Copied",
+        description: "Answer copied to clipboard",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (result) {
+      try {
+        await navigator.share({
+          title: result.query,
+          text: result.answer,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Share failed:', error);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!result) {
+    return null;
+  }
 
   return (
     <Layout>
@@ -24,7 +112,7 @@ const Results = () => {
           </Button>
           <div className="flex-1">
             <p className="text-sm text-muted-foreground">Search results for</p>
-            <h1 className="text-lg font-semibold line-clamp-1">{query}</h1>
+            <h1 className="text-lg font-semibold line-clamp-1">{result.query}</h1>
           </div>
         </div>
 
@@ -33,20 +121,16 @@ const Results = () => {
           <div className="flex items-start justify-between mb-4">
             <h2 className="text-lg font-semibold">AI Answer</h2>
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopy}>
                 <Copy className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleShare}>
                 <Share2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
           <div className="prose prose-sm max-w-none">
-            <p className="text-foreground">
-              This is where the AI-generated answer will appear. The system will
-              process your query and provide a comprehensive, direct answer based
-              on real-time web results and advanced reasoning capabilities.
-            </p>
+            <p className="text-foreground whitespace-pre-wrap">{result.answer}</p>
           </div>
         </Card>
 
@@ -54,16 +138,12 @@ const Results = () => {
         <div className="mb-6">
           <h3 className="text-sm font-medium mb-3">Follow-up questions</h3>
           <div className="flex flex-col gap-2">
-            {[
-              "Can you explain that in simpler terms?",
-              "What are the latest updates?",
-              "How does this compare to alternatives?",
-            ].map((question) => (
+            {result.follow_up_questions.map((question) => (
               <Button
                 key={question}
                 variant="outline"
                 className="justify-start h-auto py-3 px-4 text-left"
-                onClick={() => navigate(`/results?q=${encodeURIComponent(question)}`)}
+                onClick={() => navigate(`/?q=${encodeURIComponent(question)}`)}
               >
                 {question}
               </Button>
@@ -80,14 +160,16 @@ const Results = () => {
             </div>
           </summary>
           <div className="mt-3 space-y-2">
-            {[1, 2, 3].map((i) => (
+            {result.sources.map((source, i) => (
               <a
                 key={i}
-                href="#"
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block p-3 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-colors"
               >
-                <p className="text-sm font-medium">Source {i}</p>
-                <p className="text-xs text-muted-foreground">example.com</p>
+                <p className="text-sm font-medium">{source.title}</p>
+                <p className="text-xs text-muted-foreground">{source.domain}</p>
               </a>
             ))}
           </div>
