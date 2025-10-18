@@ -2,3 +2,12 @@ project_id = "xmtzhfdcgttjlzdyclja"
 
 [functions.search]
 verify_jwt = false
+
+[functions.send-reset-code]
+verify_jwt = false
+
+[functions.verify-reset-code]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
