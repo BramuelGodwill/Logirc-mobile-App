@@ -186,6 +186,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_search_limit: {
+        Args: { user_id: string }
+        Returns: Json
+      }
       reset_daily_searches: {
         Args: Record<PropertyKey, never>
         Returns: undefined
