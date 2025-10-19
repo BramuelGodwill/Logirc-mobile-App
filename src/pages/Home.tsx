@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
+import { toast as sonnerToast } from "sonner";
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,6 +156,17 @@ const Home = () => {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Developer Credit */}
+        <div className="text-xs text-muted-foreground mt-8 text-center">
+          Version 1.0.0
+          <span
+            onDoubleClick={() => sonnerToast.info("Developer: Bramuel Godwill")}
+            className="cursor-pointer select-none ml-2"
+          >
+            ⓘ
+          </span>
         </div>
       </div>
     </Layout>

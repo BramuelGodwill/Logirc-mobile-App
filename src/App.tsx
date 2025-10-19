@@ -12,6 +12,8 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Premium from "./pages/Premium";
+import ManageSubscription from "./pages/ManageSubscription";
+import Analytics from "./pages/Analytics";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/premium" element={<Premium />} />
+            <Route path="/subscription" element={<ManageSubscription />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
